@@ -8,12 +8,16 @@ Beginner-friendly Hack The Box writeups — every machine documented step-by-ste
 
 Each writeup follows the same structure:
 
-1. **Recon** — what the machine tells us
-2. **Attack path** — how each door opened, command by command
-3. **Why it worked** — the concept behind the trick (IDOR, PCAP analysis, Linux capabilities, etc.)
-4. **Key takeaways** — what I'd reuse on the next box
+1. **The Thought Process** — har step ka *WHY*: kis order mein kyun, pehla kadam kaise socha
+2. **Recon** — kya mila, non-standard flags tode hue (2-line explainer)
+3. **Dead Ends** — kya try kiya, kya fail hua, kyun (real hacking me ~70% yahi hai)
+4. **Vulnerability ELI5** — har vuln ek aam-bhasha analogy se (jaise IDOR = hotel key)
+5. **Exploitation** — exact commands jo terminal mein actually chale
+6. **Flags** — user + root
+7. **Patch / Remediation** — developer/sysadmin isko kaise rok sakta tha
 
-If you're new to HTB: read the **Why it worked** sections first — the commands are easy to copy, but the *reasoning* is the actual skill.
+If you're new to HTB: **Thought Process** aur **Dead Ends** sections
+padho — commands toh copy ho jaate hain, *soch* hi asli skill hai.
 
 ## Machines
 
