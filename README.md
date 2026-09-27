@@ -20,8 +20,9 @@ If you're new to HTB: read the **Why it worked** sections first — the commands
 | # | Machine | OS | Difficulty | Date | Status |
 |---|---------|----|-----------|------|--------|
 | 1 | [Cap](writeups/cap/README.md) | Linux | Easy | 2026-09-27 | ✅ User + Root |
+| 2 | [Enigma](writeups/enigma/README.md) | Linux | Easy | 2026-09-27 | ✅ User + Root |
 
-**Progress: 1 / Top 50 journey**
+**Progress: 2 / Top 50 journey**
 
 ## Methodology I follow
 
