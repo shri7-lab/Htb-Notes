@@ -1,23 +1,34 @@
 # Htb-Notes
 
-Beginner-friendly Hack The Box writeups — every machine documented step-by-step with exact commands, my thought process, and lessons learned.
+Beginner-friendly Hack The Box writeups — not command dumps, but
+**active-learning notes** that make you think before you read.
 
 > **Goal: HTB Top 50** — this repo will hold every machine I own until I get there.
 
 ## How to read these writeups
 
-Each writeup follows the same structure:
+These notes are built to defeat the "illusion of competence" (reading
+is not knowing). Every writeup follows the same structure:
 
-1. **The Thought Process** — har step ka *WHY*: kis order mein kyun, pehla kadam kaise socha
-2. **Recon** — kya mila, non-standard flags tode hue (2-line explainer)
-3. **Dead Ends** — kya try kiya, kya fail hua, kyun (real hacking me ~70% yahi hai)
-4. **Vulnerability ELI5** — har vuln ek aam-bhasha analogy se (jaise IDOR = hotel key)
-5. **Exploitation** — exact commands jo terminal mein actually chale
+1. **Pause & Predict** — collapsible questions *before* each solution;
+   answer hidden under `<details>` so your brain runs first
+2. **Recon & Observations** — raw output plus "what looked anomalous
+   and why", with every non-standard flag broken down
+3. **❌ Failure Log** — what I tried first, the exact error, and the
+   takeaway (real engagements fail ~70% of the time — this is where
+   debugging memory is built)
+4. **The Breakthrough** — the flaw explained in plain language with a
+   real-world analogy (no jargon walls)
+5. **Syntax Skeleton → Task → Execution** — command structure first,
+   a challenge to predict the filter/flag, then the real command
 6. **Flags** — user + root
-7. **Patch / Remediation** — developer/sysadmin isko kaise rok sakta tha
+7. **Defense & Remediation** — how a sysadmin/developer kills each
+   stage of the chain
+8. **Active Recall Challenges** — 3 homework tasks with hidden
+   answers; do them *before* closing the tab
 
-If you're new to HTB: **Thought Process** aur **Dead Ends** sections
-padho — commands toh copy ho jaate hain, *soch* hi asli skill hai.
+**Rule for readers:** if you only scroll, you learn nothing. Open a
+challenge, answer it mentally, *then* expand the spoiler.
 
 ## Machines
 
@@ -31,11 +42,12 @@ padho — commands toh copy ho jaate hain, *soch* hi asli skill hai.
 ## Methodology I follow
 
 ```text
-htb machine spawn          # machine lete hi IP
-nmap -sC -sV -oA recon     # full port sweep pehle
-gobuster / dirb            # web content
-manual browsing            # JS, cookies, params — samjho kya hai
-exploit ONLY on target     # authorized HTB scope, hamesha
+htb machine spawn        # spawn → grab the IP
+nmap -sC -sV -p-        # full port sweep first, never a default list
+parallel enumeration    # independent surfaces (web/NFS) at the same time
+version → CVE search    # fingerprint the app before writing any exploit
+manual browsing         # JS, cookies, params — understand the app first
+exploit ONLY on target  # authorized HTB scope, always
 ```
 
 ## Rules (non-negotiable)

