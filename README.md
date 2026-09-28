@@ -57,6 +57,18 @@ hosts on BOTH sides    # respawn = new IP → rewrite /etc/hosts (container + ho
 ss -tlnp after foothold # loopback services are invisible to remote nmap -p-
 ```
 
+## After a Mac reboot (session resume checklist)
+
+```text
+docker start kali                     # verify container is Up
+osascript -e 'do shell script "/usr/local/opt/openvpn/sbin/openvpn \
+  --config /Users/abcd/htb.ovpn --daemon --log /tmp/mac-vpn.log" \
+  with administrator privileges'      # 1 password prompt → utun tunnel
+htb machine active                    # no active machine → spawn; NEW IP →
+                                      # rewrite /etc/hosts on BOTH sides
+curl -sI http://orion.htb/            # must be 200 from Mac AND from kali
+```
+
 ## Rules (non-negotiable)
 
 - Targets are **only** HTB machines, my own labs, or explicitly authorized scopes.
