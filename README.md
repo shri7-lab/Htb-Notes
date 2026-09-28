@@ -51,7 +51,9 @@ parallel enumeration    # independent surfaces (web/NFS) at the same time
 version → CVE search    # fingerprint the app before writing any exploit
 manual browsing         # JS, cookies, params — understand the app first
 exploit ONLY on target  # authorized HTB scope, always
-docker exec kali …      # traffic goes where the VPN lives (tun0 = container)
+ONE tunnel only        # same cert + two openvpn = same pushed IP = both die;
+                       # pick Mac OR container, the other rides its routes
+hosts on BOTH sides    # respawn = new IP → rewrite /etc/hosts (container + host)
 ss -tlnp after foothold # loopback services are invisible to remote nmap -p-
 ```
 

@@ -29,6 +29,10 @@ nmap (22/80) → orion.htb vhost → Craft CMS 5.6.16 at /admin/login
 > `Host seems down`. On Medium/Hard boxes, a broken tunnel masquerades
 > as a dead service, a filtered port, or an "unexploitable" bug. Know
 > the path every packet takes *before* touching a tool.
+>
+> *During this solve the VPN lived in the container (hence every
+> `docker exec` below). Final standing setup after the respawn is
+> rule 5: VPN on the Mac, container riding its routes.*
 
 ```text
 ┌─ Mac (host) ──────────────────────────────────────────────┐
@@ -66,6 +70,19 @@ Rules this diagram enforces:
    the target IP* — anything bound to `127.0.0.1` (Orion's telnetd,
    MySQL, DNS) only appears once you have a shell and run
    `ss -tlnp` locally. This single line held the entire privesc.
+5. **Exactly ONE tunnel at a time.** Connecting kali *and* the Mac with
+   the same `.ovpn` (same client cert) makes the server push the **same
+   virtual IP** (`10.10.14.241`) to both sessions — both tunnels start
+   answering for one address and *both* die (`traceroute` shows the edge
+   replying `!H`). Final working setup: OpenVPN on the Mac only
+   (`brew install openvpn`, config `docker cp kali:/root/htb.ovpn ~`,
+   launch as root → `utun4`), and the container's own openvpn killed —
+   container egress rides the Mac's routing table into `utun4`
+   (verify with `curl http://orion.htb/` from *both* sides).
+6. **Machines get a new IP on every respawn.** When `htb machine active`
+   comes back empty (machine terminated/timeout), spawn again and
+   rewrite `/etc/hosts` **on both the container and the Mac** — a stale
+   hosts line fails as a silent timeout, not an error.
 
 ## 1. Reconnaissance & Surface Analysis
 
