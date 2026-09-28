@@ -36,8 +36,9 @@ challenge, answer it mentally, *then* expand the spoiler.
 |---|---------|----|-----------|------|--------|
 | 1 | [Cap](writeups/cap/README.md) | Linux | Easy | 2026-09-27 | ✅ User + Root |
 | 2 | [Enigma](writeups/enigma/README.md) | Linux | Easy | 2026-09-27 | ✅ User + Root |
+| 3 | [Orion](writeups/orion/README.md) | Linux | Easy | 2026-09-28 | ✅ User + Root |
 
-**Progress: 2 / Top 50 journey**
+**Progress: 3 / Top 50 journey**
 
 ## Methodology I follow
 
