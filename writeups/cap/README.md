@@ -226,9 +226,13 @@ cat /root/root.txt
 
 ## 5. Flags
 
+> **Rule: flags are never written into these notes** — re-run the box
+> to regenerate them (passive readers don't get free flags, and I don't
+> get passive memories).
+
 ```text
-user: ed6aad7b3836bffc740aa31e38ff6ac1
-root: 323fb183effc32e42224ebff69f9effd
+user : <from the FTP/downloaded file — submitted ✓>
+root : <after the final privesc — submitted ✓>
 ```
 
 ```bash

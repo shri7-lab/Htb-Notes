@@ -23,6 +23,50 @@ nmap (22/80) → orion.htb vhost → Craft CMS 5.6.16 at /admin/login
 
 ---
 
+## 0. Tunnel & Networking Setup (why packets even arrive)
+
+> Skip this on Easy boxes and you will waste 30 minutes staring at
+> `Host seems down`. On Medium/Hard boxes, a broken tunnel masquerades
+> as a dead service, a filtered port, or an "unexploitable" bug. Know
+> the path every packet takes *before* touching a tool.
+
+```text
+┌─ Mac (host) ──────────────────────────────────────────────┐
+│  NO VPN. curl/nmap 10.129.244.146 → routed to home router │
+│  → 10.129.0.0/16 is private → dropped → "Host seems down" │
+└──────────────────────────┬────────────────────────────────┘
+                           │ docker exec kali …
+┌─ kali container ─────────▼────────────────────────────────┐
+│  tun0 = 10.10.14.241/23   ← HTB VPN (root/htb.ovpn) here │
+│  eth0 = normal internet   ← apt/searchsploit/web fetches  │
+│                                                            │
+│  /etc/hosts: 10.129.244.146 orion.htb   (vhost resolution)│
+└──────────────────────────┬────────────────────────────────┘
+                           │ encrypted VPN tunnel (server id 251)
+                           ▼
+                 HTB lab → 10.129.244.146 (Orion)
+```
+
+Rules this diagram enforces:
+
+1. **`htb machine active` is the only IP source of truth.** A
+   chat-transcribed IP here was wrong by one digit (`…224…` vs
+   `…244…`) and cost a full scan before the CLI admitted it.
+2. **Every target command runs through `docker exec kali …`.** The Mac
+   itself is *not* on the tunnel — this is a topology fact, not a
+   tooling preference. (Alternative: run `openvpn` on the Mac too, but
+   then *all* Mac traffic re-routes; splitting lab traffic into the
+   container keeps the browser/internet independent.)
+3. **`/etc/hosts` needs the entry twice** — once inside the container
+   (curl/gobuster/exploit resolve `orion.htb`) and once on the Mac
+   (`dscacheutil`/browser) if you want to click around in a real
+   browser. nginx routes on `Host:`, so the raw IP serves the wrong
+   vhost.
+4. **`nmap -p-` is blind to loopback.** It scans all 65535 ports *on
+   the target IP* — anything bound to `127.0.0.1` (Orion's telnetd,
+   MySQL, DNS) only appears once you have a shell and run
+   `ss -tlnp` locally. This single line held the entire privesc.
+
 ## 1. Reconnaissance & Surface Analysis
 
 ### Raw Port Scan
@@ -317,7 +361,7 @@ USER='-f root' telnet -a 127.0.0.1
 root@orion:~# id
 uid=0(root) gid=0(root) groups=0(root)
 root@orion:~# cat /root/root.txt
-a708a282d8240926db2b7a65f54cb0b2
+<flag — redacted from notes, see §5>
 ```
 
 ```text
@@ -335,14 +379,19 @@ Non-interactive variant (for scripted runs):
 
 ## 5. Flags
 
+> **Rule: flags are never written into these notes.** A pasted flag
+> turns this writeup into a flashcard (passive recognition) instead of
+> a procedure (active recall). Both flags are regenerable in minutes by
+> re-running the chain above — that re-run *is* the review.
+
 ```text
-user: cfbc35cf79163e7e78931efbf676e8f4
-root: a708a282d8240926db2b7a65f54cb0b2
+user : read /home/adam/user.txt after step "su - adam"     (submitted ✓)
+root : read /root/root.txt after the telnetd bypass        (submitted ✓)
 ```
 
 ```bash
-htb machine own cfbc35cf79163e7e78931efbf676e8f4 -d 25   # ✓ user owned
-htb machine own a708a282d8240926db2b7a65f54cb0b2 -d 25   # ✓ root owned
+htb machine own <flag>        # run inside the container (htb CLI in PATH)
+htb machine own <flag> -d 25  # optional difficulty rating 0-100
 ```
 
 ## 6. Defense & Remediation (The Sysadmin View)

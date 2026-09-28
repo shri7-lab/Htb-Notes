@@ -344,7 +344,7 @@ write the password to the master side.
 </details>
 
 ```
-ff4d8e92f6f456fcec6e70019cbdd97e   ← user flag
+<flag — redacted from notes, see §5>
 ```
 
 ### Root — OliveTin API command injection
@@ -405,9 +405,13 @@ removed before submission.
 
 ## 5. Flags
 
+> **Rule: flags are never written into these notes** — re-run the box
+> to regenerate them (passive readers don't get free flags, and I don't
+> get passive memories).
+
 ```text
-user: ff4d8e92f6f456fcec6e70019cbdd97e
-root: 7585bea1d4d3f2351354f5f67b5a935b
+user : <from the NFS/mail chain — submitted ✓>
+root : <after OliveTin privesc — submitted ✓>
 ```
 
 ```bash

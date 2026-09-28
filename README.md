@@ -21,7 +21,8 @@ is not knowing). Every writeup follows the same structure:
    real-world analogy (no jargon walls)
 5. **Syntax Skeleton → Task → Execution** — command structure first,
    a challenge to predict the filter/flag, then the real command
-6. **Flags** — user + root
+6. **Flags** — never pasted; *where* to read them and how to submit
+   (regenerating them by re-running is the actual review)
 7. **Defense & Remediation** — how a sysadmin/developer kills each
    stage of the chain
 8. **Active Recall Challenges** — 3 homework tasks with hidden
@@ -44,17 +45,23 @@ challenge, answer it mentally, *then* expand the spoiler.
 
 ```text
 htb machine spawn        # spawn → grab the IP
+htb machine active       # IP source of truth — never trust a copied IP
 nmap -sC -sV -p-        # full port sweep first, never a default list
 parallel enumeration    # independent surfaces (web/NFS) at the same time
 version → CVE search    # fingerprint the app before writing any exploit
 manual browsing         # JS, cookies, params — understand the app first
 exploit ONLY on target  # authorized HTB scope, always
+docker exec kali …      # traffic goes where the VPN lives (tun0 = container)
+ss -tlnp after foothold # loopback services are invisible to remote nmap -p-
 ```
 
 ## Rules (non-negotiable)
 
 - Targets are **only** HTB machines, my own labs, or explicitly authorized scopes.
 - No scanning/exploiting anything else — ever.
+- **No flags in notes.** Flag values are never committed — write *where*
+  they were read instead. If you can answer from the notes without
+  re-running the box, the notes are doing the learning for you.
 
 ---
 

@@ -19,6 +19,14 @@
 
 ## 1. Reconnaissance & Surface Analysis
 
+### Tunnel Sanity (before the first packet)
+
+```text
+htb machine active     # the ONLY IP source of truth (never copy IPs from chat)
+docker exec kali …     # all target traffic — the VPN (tun0) lives in the container
+/etc/hosts <ip> <name> # vhost mapping: inside container AND on the host browser
+```
+
 ### Raw Port Scan
 
 ```bash
@@ -174,9 +182,13 @@ whoami   # root
 
 ## 5. Flags
 
+> **Rule: never paste flag values into notes.** They turn the writeup
+> into a flashcard (passive recognition). Record *where* the flag was
+> read and *how* it was submitted — regeneration is the review.
+
 ```text
-user: <flag>
-root: <flag>
+user: <path/command that printed it>   (submitted ✓)
+root: <path/command that printed it>   (submitted ✓)
 ```
 
 ```bash
