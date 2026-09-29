@@ -38,8 +38,10 @@ challenge, answer it mentally, *then* expand the spoiler.
 | 1 | [Cap](writeups/cap/README.md) | Linux | Easy | 2026-09-27 | ✅ User + Root |
 | 2 | [Enigma](writeups/enigma/README.md) | Linux | Easy | 2026-09-27 | ✅ User + Root |
 | 3 | [Orion](writeups/orion/README.md) | Linux | Easy | 2026-09-28 | ✅ User + Root |
+| 4 | [Principal](writeups/principal/README.md) | Linux | Medium | 2026-09-29 | ✅ User + Root |
+| 5 | [DarkZeroReturns](writeups/darkzeroreturns/README.md) | Hybrid (Linux front + Windows AD) | Hard | 2026-09-30 | ✅ User + Root |
 
-**Progress: 3 / Top 50 journey**
+**Progress: 5 / Top 50 journey**
 
 ## Methodology I follow
 
@@ -76,6 +78,8 @@ curl -sI http://orion.htb/            # must be 200 from Mac AND from kali
 - **No flags in notes.** Flag values are never committed — write *where*
   they were read instead. If you can answer from the notes without
   re-running the box, the notes are doing the learning for you.
+- **Every writeup ships a Methodology section** (decision tree + transferable
+  rules). The box gets consumed once; the decision process must outlive it.
 
 ---
 

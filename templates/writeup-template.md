@@ -208,7 +208,29 @@ htb machine own <flag>
 1. `<reusable lesson>`
 2. `<what becomes faster on the next box>`
 
-## 8. 🧠 Active Recall Challenges (Before You Close This Box)
+## 8. Methodology — Decisions & Transferable Rules
+
+> Key Takeaways above are box-specific. This section records the
+> *decision process* itself — it must outlive the box.
+
+### Decision Tree (why each next move)
+
+```text
+STEP          FACT OBSERVED              DECISION & WHY (vs rejected alt)
+Recon         <open ports/versions>      <service X first because it leaks>
+Surface       <page/JS/source findings>  <what I read and what it revealed>
+Hypothesis    <description + code path>  <falsifiable prediction + test>
+Fix           <exact error message>      <what the traceback taught>
+Pivot         <leaked credential/data>   <why THIS field was the real one>
+Privesc       <config/class of flaw>     <which misconfig pattern matched>
+```
+
+### Rules Extracted (carry to the next box)
+
+1. `<rule that applies to ANY target, not just this one>`
+2. `<...>`
+
+## 9. 🧠 Active Recall Challenges (Before You Close This Box)
 
 - [ ] **Challenge 1:** `<reverse question — what would you do without the tool?>`
 - [ ] **Challenge 2:** `<hands-on lab to reproduce on local Kali>`
