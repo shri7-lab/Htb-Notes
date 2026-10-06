@@ -40,8 +40,11 @@ challenge, answer it mentally, *then* expand the spoiler.
 | 3 | [Orion](writeups/orion/README.md) | Linux | Easy | 2026-09-28 | ✅ User + Root |
 | 4 | [Principal](writeups/principal/README.md) | Linux | Medium | 2026-09-29 | ✅ User + Root |
 | 5 | [DarkZeroReturns](writeups/darkzeroreturns/README.md) | Hybrid (Linux front + Windows AD) | Hard | 2026-09-30 | ✅ User + Root |
+| 6 | [Bedside](writeups/bedside/README.md) | Linux | Medium | 2026-10-03 | ✅ User + Root |
+| 7 | [Layover](writeups/layover/README.md) | Linux | Medium | 2026-10-03 | ✅ User + Root |
+| 8 | [Touch](writeups/Touch/README.md) | Windows | Easy | 2026-10-05 | ✅ User + Root |
 
-**Progress: 5 / Top 50 journey**
+**Progress: 8 / Top 50 journey**
 
 ## Methodology I follow
 
