@@ -62,6 +62,32 @@ hosts on BOTH sides    # respawn = new IP → rewrite /etc/hosts (container + ho
 ss -tlnp after foothold # loopback services are invisible to remote nmap -p-
 ```
 
+## Path-finding rules (Touch: 2 din vs 20 min ka farq)
+
+> Touch 20 min me solve ho sakta tha; hum 2 din lage — badge rabbit hole me.
+> Yeh 5 rules agla dead-end pehle hi pakadenge.
+
+1. **Easy box pe guessing = off-path ka signal.** Intended path kabhi aisa
+   nahi hota jisme koi secret guess karna pade jo machine ne disclose hi nahi
+   ki. Test: *"Is step ke liye info chahiye jo mujhe di hi nahi?"* Haan →
+   red herring, quit after ~10 candidates.
+2. **UI buttons = API menu, decoration nahi.** Har `onclick`/form/link = ek
+   action. List banao ("kya kar sakte ho") phir pucho **"in actions se kya
+   tootega?"** — Touch pe `api('/api/scanner/power')` button hi poora
+   breakout tha.
+3. **Obstacle hi rasta hai (kiosk rule).** Lockdown mile to "valid escape
+   dhundo" mat socho — **"X tootne par kya fallback/error/support page
+   khulta hai"** wahi darwaza hai. External link wala error dialog by-design
+   ka exit hota hai.
+4. **30-min timebox.** Easy box pe ek dead end > 30 min nahi. Uske baad:
+   action list dobara enumerate → machine description/hints →
+   **forum/writeup padho** (Touch pe 5 min ka read 5 ghante bachata).
+   *"If I'm guessing, I'm lost — go read something."*
+5. **Pehle padho, exploit baad me:** `htb machine info` description →
+   release ke 48h me HTB forum → page ka HTML/JS. Jo **deliberate** lagta
+   hai (unauth endpoint, "show password" button) = intended; jo hidden hai
+   = rabbit hole.
+
 ## After a Mac reboot (session resume checklist)
 
 ```text
