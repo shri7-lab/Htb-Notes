@@ -1,0 +1,7 @@
+# scans & captures — apne notes rakho, binaries mat
+*.pcap
+*.pcapng
+recon/
+*.txt
+!requirements.txt
+.DS_Store
