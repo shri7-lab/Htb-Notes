@@ -37,6 +37,9 @@
   .refs li { margin-bottom: 1.8mm; }
   code, .mono { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 9.3pt; }
   .eq { text-align: center; font-style: italic; margin: 3mm 0; }
+  figure { margin: 4mm 0; text-align: center; page-break-inside: avoid; }
+  figure svg { width: 100%; height: auto; }
+  figcaption { font-size: 9pt; margin-top: 1.5mm; text-align: left; }
 </style>
 </head>
 <body>
@@ -171,6 +174,27 @@ so overnight service interruptions preserve budget comparability. v3 adds three
 further candidates: a quote-free inner-command discipline (Section&nbsp;5.4),
 a callback-reachability pre-check for attacker listeners, and the formalized
 ground-truth fallback ladder.</p>
+<figure id="fig1">
+<svg viewBox="0 0 660 135" xmlns="http://www.w3.org/2000/svg">
+  <line x1="30" y1="70" x2="630" y2="70" stroke="#555" stroke-width="2"/>
+  <circle cx="70" cy="70" r="6" fill="#2a7d4f"/>
+  <text x="70" y="40" text-anchor="middle" font-size="9.5" font-weight="bold" font-family="Georgia,serif">v1 pre-registered</text>
+  <text x="70" y="52" text-anchor="middle" font-size="8.5" font-family="Georgia,serif">(commit 0412831)</text>
+  <circle cx="190" cy="70" r="6" fill="#4a86c8"/>
+  <text x="190" y="93" text-anchor="middle" font-size="9.5" font-weight="bold" font-family="Georgia,serif">Pilot #1 &#183; Easy</text>
+  <text x="190" y="105" text-anchor="middle" font-size="8.5" font-family="Georgia,serif">2/7 &#183; spray &amp; infra gaps</text>
+  <circle cx="330" cy="70" r="6" fill="#2a7d4f"/>
+  <text x="330" y="40" text-anchor="middle" font-size="9.5" font-weight="bold" font-family="Georgia,serif">v2 (+R1&#8211;R6)</text>
+  <text x="330" y="52" text-anchor="middle" font-size="8.5" font-family="Georgia,serif">(commit bc743eb)</text>
+  <circle cx="480" cy="70" r="6" fill="#4a86c8"/>
+  <text x="480" y="93" text-anchor="middle" font-size="9.5" font-weight="bold" font-family="Georgia,serif">Pilot #2 &#183; Medium</text>
+  <text x="480" y="105" text-anchor="middle" font-size="8.5" font-family="Georgia,serif">5.5/7 &#183; suspension finding</text>
+  <circle cx="610" cy="70" r="6" fill="#ffffff" stroke="#888" stroke-width="2" stroke-dasharray="3,2"/>
+  <text x="610" y="40" text-anchor="middle" font-size="9.5" font-weight="bold" font-family="Georgia,serif">v3 pending</text>
+  <text x="610" y="52" text-anchor="middle" font-size="8.5" font-family="Georgia,serif">strata &#183; quote-free</text>
+</svg>
+<figcaption><b>Figure 1:</b> Protocol series &#8212; each version is pre-registered before its run; amendments log gaps observed in the previous run.</figcaption>
+</figure>
 
 <h3>3.2&nbsp;&nbsp;Experimental conditions</h3>
 <p><b>Delegate.</b> The LLM agent selects commands, tools, and strategy; a
@@ -275,6 +299,48 @@ OCR service). The OCR submission pipeline was verified end-to-end (data-URL
 PNG accepted; a generated test image reached the OCR engine), but the
 timebox expired before the file-write stage and payload-render step that the
 post-run writeup shows were the only remaining actions. S6=0, S7 partial.</p>
+<figure id="fig2">
+<svg viewBox="0 0 660 118" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="#555"/>
+    </marker>
+  </defs>
+  <g font-family="Georgia,serif" text-anchor="middle">
+    <rect x="14"  y="18" width="80" height="58" rx="4" fill="#e7f5ec" stroke="#2a7d4f" stroke-width="1.2"/>
+    <text x="54" y="42" font-size="8.5" font-weight="bold">Stored XSS</text>
+    <text x="54" y="56" font-size="8">admin bot (60s)</text>
+    <rect x="106" y="18" width="80" height="58" rx="4" fill="#e7f5ec" stroke="#2a7d4f" stroke-width="1.2"/>
+    <text x="146" y="42" font-size="8.5" font-weight="bold">REST create</text>
+    <text x="146" y="56" font-size="8">admin &#8594;201</text>
+    <rect x="198" y="18" width="80" height="58" rx="4" fill="#e7f5ec" stroke="#2a7d4f" stroke-width="1.2"/>
+    <text x="238" y="42" font-size="8.5" font-weight="bold">Theme editor</text>
+    <text x="238" y="56" font-size="8">RCE www-data</text>
+    <rect x="290" y="18" width="80" height="58" rx="4" fill="#e7f5ec" stroke="#2a7d4f" stroke-width="1.2"/>
+    <text x="330" y="42" font-size="8.5" font-weight="bold">wp-config</text>
+    <text x="330" y="56" font-size="8">DB creds</text>
+    <rect x="382" y="18" width="80" height="58" rx="4" fill="#e7f5ec" stroke="#2a7d4f" stroke-width="2"/>
+    <text x="422" y="42" font-size="8.5" font-weight="bold">SSH walter</text>
+    <text x="422" y="56" font-size="8" font-weight="bold">user flag &#10003;</text>
+    <rect x="474" y="18" width="80" height="58" rx="4" fill="#fdf6e0" stroke="#c9971b" stroke-width="1.2"/>
+    <text x="514" y="42" font-size="8.5" font-weight="bold">OCR service</text>
+    <text x="514" y="56" font-size="8">root &#183; auth &#10003;</text>
+    <rect x="566" y="18" width="80" height="58" rx="4" fill="#f6e9e9" stroke="#a94442" stroke-width="1.2" stroke-dasharray="4,3"/>
+    <text x="606" y="42" font-size="8.5" font-weight="bold">file-write</text>
+    <text x="606" y="56" font-size="8">root &#10007; timebox</text>
+    <g stroke="#555" stroke-width="1.4" marker-end="url(#arr)">
+      <line x1="96"  y1="47" x2="104" y2="47"/>
+      <line x1="188" y1="47" x2="196" y2="47"/>
+      <line x1="280" y1="47" x2="288" y2="47"/>
+      <line x1="372" y1="47" x2="380" y2="47"/>
+      <line x1="464" y1="47" x2="472" y2="47"/>
+      <line x1="556" y1="47" x2="564" y2="47"/>
+    </g>
+    <text x="330" y="100" font-size="8.5" fill="#666">green = completed &#183; amber = mapped but incomplete &#183; red dashed = not reached (timebox)</text>
+  </g>
+</svg>
+<figcaption><b>Figure 2:</b> MakeSense kill chain as executed in pilot #2: five completed stages, one partially mapped, one stopped at the timebox.</figcaption>
+</figure>
 
 <h3>5.4&nbsp;&nbsp;Annotation agreement (first measurement)</h3>
 <p>Post-run ground truth (official writeup API returned "not found" despite
@@ -307,6 +373,37 @@ cookie-jar format drift (HttpOnly prefix, field-count off-by-one); nonce-field
 markup drift across pages (three distinct formats in one admin UI). Each cost
 2&ndash;9 minutes of debug time but was fully recoverable; we argue they must be
 reported as harness/app effects, not model incompetence.</p>
+<figure id="fig3">
+<svg viewBox="0 0 660 235" xmlns="http://www.w3.org/2000/svg">
+  <g font-family="Georgia,serif">
+    <rect x="195" y="8" width="270" height="28" rx="4" fill="#f0f0f0" stroke="#555" stroke-width="1.2"/>
+    <text x="330" y="26" text-anchor="middle" font-size="9.5" font-weight="bold">Dead ends observed (n = 2 runs)</text>
+    <line x1="330" y1="36" x2="330" y2="52" stroke="#555" stroke-width="1.4"/>
+    <line x1="165" y1="52" x2="495" y2="52" stroke="#555" stroke-width="1.4"/>
+    <line x1="165" y1="52" x2="165" y2="66" stroke="#555" stroke-width="1.4"/>
+    <line x1="495" y1="52" x2="495" y2="66" stroke="#555" stroke-width="1.4"/>
+    <rect x="35" y="66" width="260" height="26" rx="4" fill="#e7f5ec" stroke="#2a7d4f" stroke-width="1.2"/>
+    <text x="165" y="83" text-anchor="middle" font-size="9.5" font-weight="bold">Genuine strategic dead ends (6)</text>
+    <rect x="365" y="66" width="260" height="26" rx="4" fill="#fdf6e0" stroke="#c9971b" stroke-width="1.2"/>
+    <text x="495" y="83" text-anchor="middle" font-size="9.5" font-weight="bold">Environment-friction class (~12)</text>
+    <rect x="35" y="98" width="260" height="122" rx="4" fill="#ffffff" stroke="#2a7d4f" stroke-width="0.8"/>
+    <text x="47" y="115" font-size="8.5">&#8226; Upload bypass &#215;7 variants (blocked)</text>
+    <text x="47" y="133" font-size="8.5">&#8226; SSRF oracle (uniform fault)</text>
+    <text x="47" y="151" font-size="8.5">&#8226; Blind fuzzing (self-DoS)</text>
+    <text x="47" y="169" font-size="8.5">&#8226; Password spray (60 attempts, 0 hits)</text>
+    <text x="47" y="187" font-size="8.5">&#8226; Audio transcript as credential (flavor)</text>
+    <text x="47" y="205" font-size="8.5">&#8226; Object injection endpoint (cleared)</text>
+    <rect x="365" y="98" width="260" height="122" rx="4" fill="#ffffff" stroke="#c9971b" stroke-width="0.8"/>
+    <text x="377" y="115" font-size="8.5">&#8226; Quote/metachar corruption (app-layer)</text>
+    <text x="377" y="133" font-size="8.5">&#8226; Nonce-field markup drift (&#215;3 formats)</text>
+    <text x="377" y="151" font-size="8.5">&#8226; Cookie-jar parse (HttpOnly, fields)</text>
+    <text x="377" y="169" font-size="8.5">&#8226; Digit-glitch in numeric flags</text>
+    <text x="377" y="187" font-size="8.5">&#8226; Missing TLS-insecure flag</text>
+    <text x="377" y="205" font-size="8.5">&#8226; Concurrency DoS on target</text>
+  </g>
+</svg>
+<figcaption><b>Figure 3:</b> Dead-end taxonomy. Left: genuine strategic dead ends. Right: environment-friction events&#8212;deterministic, reproducible, and attributable to harness/application layers rather than model reasoning.</figcaption>
+</figure>
 
 <h3>5.6&nbsp;&nbsp;Time stratification</h3>
 <table>
@@ -319,6 +416,35 @@ to recon, and friction&mdash;while nonzero&mdash;never dominated. The overnight
 suspension (&asymp;24.5 wall-clock hours, zero commands) was fully isolated by
 stratified accounting; without it the run would have "overrun" by two orders
 of magnitude while actually consuming99% of its budget.</p>
+<figure id="fig4">
+<svg viewBox="0 0 660 172" xmlns="http://www.w3.org/2000/svg">
+  <g font-family="Georgia,serif">
+    <text x="75" y="32" font-size="9.5" font-weight="bold">Pilot #1 (Easy)</text>
+    <rect x="75" y="38" width="377" height="30" fill="#4a86c8"/>
+    <rect x="452" y="38" width="174" height="30" fill="#3f9b5f"/>
+    <rect x="626" y="38" width="29" height="30" fill="#b05656"/>
+    <text x="263" y="57" text-anchor="middle" font-size="9" fill="#ffffff" font-weight="bold">65%</text>
+    <text x="539" y="57" text-anchor="middle" font-size="9" fill="#ffffff" font-weight="bold">30%</text>
+    <text x="640" y="57" text-anchor="middle" font-size="8" fill="#ffffff">5%</text>
+    <text x="75" y="88" font-size="9.5" font-weight="bold">Pilot #2 (Medium)</text>
+    <rect x="75" y="94" width="197" height="30" fill="#4a86c8"/>
+    <rect x="272" y="94" width="197" height="30" fill="#3f9b5f"/>
+    <rect x="469" y="94" width="128" height="30" fill="#e08a2e"/>
+    <rect x="597" y="94" width="58" height="30" fill="#b05656"/>
+    <text x="173" y="113" text-anchor="middle" font-size="9" fill="#ffffff" font-weight="bold">34%</text>
+    <text x="370" y="113" text-anchor="middle" font-size="9" fill="#ffffff" font-weight="bold">34%</text>
+    <text x="533" y="113" text-anchor="middle" font-size="9" fill="#ffffff" font-weight="bold">22%</text>
+    <text x="626" y="113" text-anchor="middle" font-size="8.5" fill="#ffffff" font-weight="bold">10%</text>
+    <g font-size="8.5">
+      <rect x="75" y="146" width="11" height="11" fill="#4a86c8"/><text x="91" y="155">Recon/enum</text>
+      <rect x="180" y="146" width="11" height="11" fill="#3f9b5f"/><text x="196" y="155">Exploit chain</text>
+      <rect x="295" y="146" width="11" height="11" fill="#e08a2e"/><text x="311" y="155">Privesc</text>
+      <rect x="385" y="146" width="11" height="11" fill="#b05656"/><text x="401" y="155">Friction/debug</text>
+    </g>
+  </g>
+</svg>
+<figcaption><b>Figure 4:</b> Active-time stratification by phase. With existing intelligence, exploit-phase share doubles while friction remains a minority cost.</figcaption>
+</figure>
 
 <h2>6&nbsp;&nbsp;Discussion</h2>
 <p><b>Environment vs.&nbsp;model.</b> The friction taxonomy is the paper's

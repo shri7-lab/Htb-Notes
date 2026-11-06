@@ -118,7 +118,7 @@
 |---|-----|----------|-----|--------|
 | 1 | **More runs: n≥6 + driver arm (pilot #3)** | condition comparison claim (§5.6) + statistical weight | Nov–Dec | ⬜ blocked on runs |
 | 2 | **Systematic related-work check** | §2 final + novelty positioning (COLM: Ambition) | quota unblock | 🚫 blocked on402 |
-| 3 | **References verified + expanded (10→25+)** | scholarly credibility (Clarity/Honesty) | alongside #2 | ⬜ |
+| 3 | **References verified + expanded (10→25+)** — sources: **arXiv best/open-access LLM-pentest papers**, **MIT Open Scholarship (DSpace@MIT, dspace.mit.edu)**, USENIX/NDSS/S&P OA archives, plus webfetch of arXiv abs pages (works even while websearch is402) | scholarly credibility (Clarity/Honesty) | alongside #2 | ⬜ |
 | 4 | **Figures ×4**: kill-chain diagram, time-stratification stacked bars, taxonomy tree, protocol/amendment timeline | visual professionalism + Understanding Depth | 1 day | ⬜ ready to make |
 | 5 | **Second annotator → inter-rater reliability (Cohen's κ)** | agreement metric becomes validated, not self-graded (Empiricism) | with next run | ⬜ needs one human pass |
 | 6 | **Affiliation** | title page completeness | from author | ⬜ blocked on user |
