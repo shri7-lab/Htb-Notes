@@ -46,6 +46,17 @@ challenge, answer it mentally, *then* expand the spoiler.
 
 **Progress: 8 / Top 50 journey**
 
+### Research pilots (delegate-condition runs — no driver-mode writeup)
+
+| Pilot | Machine | Difficulty | Result | Artifacts |
+|-------|---------|------------|--------|-----------|
+| #1 | Management (active) | Easy | timebox, 0 flags, 2/7 stages | [pilot-report.md](research/pilot-report.md) |
+| #2 | MakeSense (retired) | Medium | **user flag owned**, 5.5/7 stages, 7/7 annotation agreement | [pilot-2-report.md](research/pilot-2-report.md) |
+
+Pilots score the *process* (pre-registered protocol in `research/`), not the
+badge — so they don't sit in the writeup table above. #2's report is also the
+first annotation-agreement datapoint for the agentic-pentest paper.
+
 ## Methodology I follow
 
 ```text
