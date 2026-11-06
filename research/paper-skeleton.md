@@ -110,6 +110,36 @@
 
 ---
 
+## Strengthening roadmap (v0.1 → submission) — prioritized
+
+### P0 — credibility blockers (paper strong hone ke liye zaroori)
+
+| # | Add | Kya dega | Kab | Status |
+|---|-----|----------|-----|--------|
+| 1 | **More runs: n≥6 + driver arm (pilot #3)** | condition comparison claim (§5.6) + statistical weight | Nov–Dec | ⬜ blocked on runs |
+| 2 | **Systematic related-work check** | §2 final + novelty positioning (COLM: Ambition) | quota unblock | 🚫 blocked on402 |
+| 3 | **References verified + expanded (10→25+)** | scholarly credibility (Clarity/Honesty) | alongside #2 | ⬜ |
+| 4 | **Figures ×4**: kill-chain diagram, time-stratification stacked bars, taxonomy tree, protocol/amendment timeline | visual professionalism + Understanding Depth | 1 day | ⬜ ready to make |
+| 5 | **Second annotator → inter-rater reliability (Cohen's κ)** | agreement metric becomes validated, not self-graded (Empiricism) | with next run | ⬜ needs one human pass |
+| 6 | **Affiliation** | title page completeness | from author | ⬜ blocked on user |
+
+### P1 — differentiators (accept ke liye strong banate hain)
+
+| # | Add | Kya dega |
+|---|-----|----------|
+| 7 | **Case study: MakeSense chain deep-dive** (narrative + timeline, the XSS→RCE→SSH→OCR story) | reviewers love concrete walkthroughs (Understanding Depth) |
+| 8 | **Baseline comparison**: published first-blood times (4m59s/9m04s) as reference line + (if feasible) one vanilla-agent run without our protocol | proves protocol's value, not just agent's (Empiricism) |
+| 9 | **Full friction-event appendix** (all ~12 events, timestamps, cost, fix) | taxonomy becomes reproducible evidence |
+| 10 | **Machine diversity**:1 Windows +1 Hard box | external validity, kills "single-platform" objection |
+
+### P2 — polish before submit
+
+| # | Add |
+|---|-----|
+| 11 | Ablation-ish retrospective: v1 vs v2 run differences (spray cap saved X min) |
+| 12 | Ethics statement (authorized HTB scope only) |
+| 13 | Artifact DOI (Zenodo release) + LaTeX conversion (COLM format) |
+
 ## Timeline (from pilot-2 report §7)
 
 - ✅ pilots #1–#2 · ⬜ v3 + pilot #3 design (this week)
