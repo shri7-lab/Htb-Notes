@@ -73,8 +73,9 @@ taxonomy of six genuine dead ends and a distinct class of roughly twelve
 drift, self-inflicted denial of service), arguing that these must be separated
 from model errors when interpreting agent failures. All protocols, session
 logs, and reports are published as artifacts. Results are preliminary (<i>n</i>&nbsp;=&nbsp;2);
-the remaining runs, the driver-condition arm, and systematic related-work
-verification are ongoing.
+the remaining runs and the driver-condition arm are ongoing; the systematic
+related-work sweep (arXiv API, MIT Open Scholarship, Crossref-verified) is
+reported in Section&nbsp;2.
 </div>
 <div class="kw"><b>Keywords:</b> LLM agents &middot; penetration testing &middot; evaluation methodology &middot; pre-registration &middot; capture-the-flag &middot; agent transparency</div>
 
@@ -133,23 +134,89 @@ LLM assistance and discloses it explicitly (Section&nbsp;6), following COLM
 policy on LLM-generated content.</p>
 
 <h2>2&nbsp;&nbsp;Related Work</h2>
-<p class="footnote"><i>Status: preliminary. A systematic novelty search is
-pending restoration of search-tool funding (Section&nbsp;7); citations below are
-being verified individually before submission.</i></p>
-<p><b>LLM pentesting agents.</b> PentestGPT&nbsp;[1] demonstrated LLM-driven
+<p class="footnote"><i>Status: systematic sweep run2026-11-07 via the arXiv
+API&mdash;four queries (<span class="mono">all:"penetration testing" AND
+all:"large language model"</span>:72 hits; <span class="mono">abs:"LLM agent"
+AND abs:"cybersecurity"</span>:53; <span class="mono">abs:"Hack The Box" AND
+abs:"LLM"</span>:7; <span class="mono">abs:"human-in-the-loop" AND
+abs:"pentest"</span>:3)&mdash;plus MIT Open Scholarship (DSpace@MIT) and Crossref
+DOI verification for non-arXiv items; title/abstract screening for relevance.
+Database-level coverage (Scopus/Web of Science) remains future work
+(Section&nbsp;7).</i></p>
+<p><b>LLM pentesting agents.</b> PentestGPT&nbsp;[1] established LLM-driven
 penetration-testing assistance with tool orchestration; HackSynth&nbsp;[2] and
 AutoAttacker&nbsp;[3] moved toward autonomous network and web attack loops.
-These systems evaluate primarily on end-task success, which motivates our
-process-level scoring. <b>CTF benchmarks.</b> InterCode-CTF&nbsp;[4], the NYU
-CTF dataset&nbsp;[5], and Cybench&nbsp;[6] provide standardized task suites and
-final-answer scoring; none pre-register per-run process annotations or measure
-agreement between planned and actual solution structure. <b>Agent evaluation
-methodology.</b> Broader agent benchmarks&nbsp;[7] score task completion;
-contamination controls and pre-registration, established in the social
-sciences&nbsp;[8], remain rare in agent evaluation. <b>Human&ndash;agent
-oversight.</b> Our delegate/driver conditions relate to supervisory vs.
-autonomous human&ndash;AI teaming studied in human factors; we treat the mode
-itself as the experimental variable.</p>
+Recent systems push toward full autonomy on Hack The Box (HTB)&nbsp;[4]:
+AutoPentester&nbsp;[5] minimizes human interaction, AutoPentest&nbsp;[6]
+measures black-box autonomy and its token cost on three HTB machines, and
+RapidPen&nbsp;[7] targets end-to-end IP-to-shell exploitation. CAI&nbsp;[8]
+contributes an explicit autonomy-level taxonomy for cybersecurity agents.
+Architecturally, MazeRunner&nbsp;[9] orchestrates three agents for nonlinear
+black-box testing, Intentest&nbsp;[10] externalizes long-horizon state to
+counter context forgetting and intent drift, and NeuroSploit&nbsp;[11] reports
+that a guardrailed harness with domain-specific agents substantially
+outperforms direct model invocation. Barbosa&nbsp;[12] argues that capability
+metrics (flags, PoCs) are silent on assurance properties&mdash;evidence
+grounding, scope enforcement, auditability&mdash;that must be enforced in the
+harness rather than the prompt. For web targets, vulnerability classes follow
+the OWASP Top Ten&nbsp;[13].</p>
+
+<p><b>Evaluations on HTB and public targets.</b> HTB machines are now a de
+facto testbed: AutoPentester&nbsp;[5], AutoPentest&nbsp;[6],
+RapidPen&nbsp;[7], and MazeRunner&nbsp;[9] report subtask- or access-level
+success on them. Lovelace et al.&nbsp;[14] compare a legacy human-in-the-loop
+system with a newer autonomous one across three public targets, explicitly
+noting that model, harness, autonomy, and memory all change together&mdash;so
+the comparison cannot isolate any single factor. A recent MIT
+thesis&nbsp;[15] (MIT Open Scholarship) evaluates LLM agent architectures for
+CTF and penetration-testing tasks in the same spirit. Across these studies,
+aggregate completion metrics dominate (subtasks, flags, shells, tokens); none
+pre-registers a per-run annotation protocol, isolates idle or suspension time,
+or treats human delegation level as the controlled variable.</p>
+
+<p><b>Failure modes and process-level analysis.</b> The Agentic Security
+systematization&nbsp;[16] catalogs recurring operational failures of
+LLM-driven security tooling and shows why scope and budget enforcement cannot
+live in system prompts. ATLAS&nbsp;[17] recovers interpretable strategy models
+from penetration-testing agent trajectories via automata learning.
+SysEvolve&nbsp;[18] finds that environmental interference (e.g., decoy
+endpoints) triples agent timeouts and that the bottleneck after initial access
+lies in post-compromise state utilization. PenTest2.0&nbsp;[19] reports
+sensitivity to prompt structure, execution context, and semantic drift during
+privilege escalation. These works identify failure modes post hoc or within a
+single system; our framework pre-registers its annotation scheme, attributes
+friction deterministically to harness/application versus model layers, and
+scores planned-versus-actual structure against independent ground truth.</p>
+
+<p><b>CTF and agent benchmarks.</b> InterCode-CTF&nbsp;[20], the NYU CTF
+dataset&nbsp;[21], and Cybench&nbsp;[22] provide standardized task suites with
+final-answer scoring; ReproBench&nbsp;[23] evaluates end-to-end vulnerability
+reproduction from a CVE identifier and finds widespread
+simulation-as-workaround; CyberArena&nbsp;[24] benchmarks attack-and-defense
+agents in live dynamic contests; AgentBench&nbsp;[25] scores general agent
+task completion. None pre-registers per-run process annotations or measures
+agreement between planned and actual solution structure.</p>
+
+<p><b>Oversight and evaluation methodology.</b> Our delegate/driver conditions
+relate to the levels-of-autonomy and oversight literature in human factors;
+Endsley's human-autonomy oversight model&nbsp;[26] details the
+out-of-the-loop problems that arise as autonomy increases, and CAI's autonomy
+taxonomy&nbsp;[8] applies such levels to cybersecurity agents.
+Pre-registration, established in the social sciences&nbsp;[27], remains rare
+in agent evaluation. We treat the delegation mode itself as the experimental
+variable under a versioned, pre-registered protocol.</p>
+
+<p><b>Positioning.</b> Prior work measures what agents achieve (flags,
+subtasks, tokens); we measure how human delegation level and pre-registered
+process accounting change the measurement itself. The closest
+comparison&nbsp;[14] varies model and harness together; autonomy
+taxonomies&nbsp;[8,&nbsp;26] are descriptive; harness-assurance
+arguments&nbsp;[12] do not run controlled human&ndash;agent conditions. Our
+contribution is the combination: the same model under two delegation
+conditions, a versioned pre-registered protocol, stratified time accounting
+that isolates suspension, a friction taxonomy with deterministic layer
+attribution, and an annotation-agreement metric against independent ground
+truth.</p>
 
 <h2>3&nbsp;&nbsp;Methodology</h2>
 
@@ -474,8 +541,10 @@ on LLM-generated content; all claims are traceable to published session logs.</p
 official source failed; consensus of two independent sources mitigates but does
 not eliminate bias. <b>Selection.</b> Boxes were chosen for ground-truth
 availability (R1), possibly favoring well-documented vulnerability classes.
-<b>Related work.</b> Systematic novelty verification is pending (funding/tool
-availability), a known gap before submission.</p>
+<b>Related work.</b> The sweep covers arXiv, one institutional repository
+(MIT Open Scholarship), and Crossref; database-level search (Scopus/Web of
+Science), additional repositories, and non-English venues remain outstanding
+before submission.</p>
 
 <h2>8&nbsp;&nbsp;Conclusion</h2>
 <p>We presented a pre-registered, process-audited evaluation framework for
@@ -484,24 +553,42 @@ taxonomy that separates strategic failure from environment friction. Two
 completed delegate runs validate the instrumentation&mdash;including100%
 structural agreement on a Medium kill-chain machine and time stratification
 that survived an overnight suspension&mdash;while honestly recording an
-incomplete root stage. Remaining runs, the driver-condition comparison, and
-systematic related-work verification complete the evidence base for submission.</p>
+incomplete root stage. Remaining runs and the driver-condition comparison
+complete the evidence base for submission.</p>
 
 <h2>References</h2>
 <ol class="refs">
 <li>S. Deng et al., "PentestGPT: An LLM-based Pentesting Tool," <i>arXiv:2310.00266</i>,2023.</li>
 <li>A. Schmitt, J. Klick, and M. Siewe, "HackSynth: LLM Agent and Evaluation Framework for Autonomous Penetration Testing," <i>arXiv:2308.10373</i>,2023.</li>
 <li>P. Shao et al., "AutoAttacker: A Large Language Model Guided System to Perform Automatic Network Attack," <i>arXiv:2403.04925</i>,2024.</li>
+<li>Hack The Box Ltd., "Hack The Box Platform &mdash; Machine Writeups," hackthebox.com,2026.</li>
+<li>Y. Ginige, A. Niroshan, S. Jain, and S. Seneviratne, "AutoPentester: An LLM Agent-based Framework for Automated Pentesting," in <i>IEEE TrustCom</i>, arXiv:2510.05605,2025.</li>
+<li>J. Henke, "AutoPentest: Enhancing Vulnerability Management With Autonomous LLM Agents," <i>arXiv:2505.10321</i>,2025.</li>
+<li>S. Nakatani et al., "RapidPen: Fully Automated IP-to-Shell Penetration Testing with LLM-based Agents," <i>arXiv:2502.16730</i>,2025.</li>
+<li>V. Mayoral-Vilches et al., "CAI: An Open, Bug Bounty-Ready Cybersecurity AI," <i>arXiv:2504.06017</i>,2025.</li>
+<li>Z. Li, Y. Jiang, J. Cheng, Y. Li, J. Qiu, and S. Ji, "MazeRunner: Nonlinear Task and Clue Orchestration for LLM-driven Black-Box Automated Penetration Testing," <i>arXiv:2608.14216</i>,2026.</li>
+<li>W. Wang, Y. Zhang, Y. Zhang, X. Di, Z. Li, B. Wu, and G. Xu, "Staying on the Attack Path: Structured State for Long-Horizon Automated Penetration Testing," <i>arXiv:2609.07344</i>,2026.</li>
+<li>J. A. dos Santos Barbosa, "Autonomous Active Directory Exploitation via Multi-Model Harness Orchestration: A Benchmark Study with NeuroSploit on GOAD," <i>arXiv:2610.04243</i>,2026.</li>
+<li>J. A. dos Santos Barbosa, "From Capability to Assurance in Autonomous Penetration-Testing Harnesses: A Framework and Reference Implementation," <i>arXiv:2609.22664</i>,2026.</li>
+<li>OWASP, "OWASP Top Ten Web Application Security Risks,"2021.</li>
+<li>V. Lovelace, C. Berryman, Y. You, S. R. Adavelly, J. Sadler, and D. Graham, "Big Enough to Break Out: Tracking the Rising Capability of LLM Penetration-Testing Agents," <i>arXiv:2609.10780</i>,2026.</li>
+<li>S. P. Laney, "LLM-Directed Agent Models in Cyberspace," M.S. thesis, Dept. Elect. Eng. Comput. Sci., MIT, May2024, hdl:1721.1/156291.</li>
+<li>I. M. Noumi et al., "Agentic Security: A Systematization of Tools, Failure Modes, and Design Laws for LLM-Driven Penetration Testing," <i>arXiv:2608.21423</i>,2026.</li>
+<li>I. D. Lopez-Miguel et al., "ATLAS: Discovering Agent Strategies through LLM-Guided Abstraction and Automata Learning," in <i>ACM/IEEE MODELS</i>, arXiv:2608.14352,2026.</li>
+<li>Y. Meng et al., "SysEvolve: An AI-native, Safe, Autonomous Adversarial Attack-Defense Co-evolutionary System," <i>arXiv:2608.15012</i>,2026.</li>
+<li>H. S. Al-Sinani and C. J. Mitchell, "PenTest2.0: Towards Autonomous Privilege Escalation Using GenAI," <i>arXiv:2507.06742</i>,2025.</li>
 <li>J. Yang et al., "InterCode: Standardizing and Benchmarking Interactive Coding with Execution Feedback," <i>arXiv:2306.14898</i>,2023.</li>
 <li>S. Han et al., "NYU CTF Dataset: A Scalable Open-Source Benchmark Dataset for Evaluating LLMs in Offensive Security," <i>arXiv:2406.05590</i>,2024.</li>
 <li>C. Zhang et al., "Cybench: A Framework for Evaluating Cybersecurity Capabilities and Risks of Language Models," <i>arXiv:2408.08265</i>,2024.</li>
+<li>L. He, S. Wu, H. Hao, H. Zhao, J. Yan, and P. Su, "ReproBench: Benchmarking LLM Agents on Reproducing Vulnerability From Scratch," <i>arXiv:2609.34450</i>,2026.</li>
+<li>B. Liu et al., "CyberArena: Benchmarking AI Agents in Live Symmetric Attack-and-Defense Combat," <i>arXiv:2610.19005</i>,2026.</li>
 <li>X. Liu et al., "AgentBench: Evaluating LLMs as Agents," <i>arXiv:2308.03688</i>,2023.</li>
+<li>M. R. Endsley, "From Here to Autonomy: Lessons Learned from Human&ndash;Automation Research," <i>Human Factors</i>, vol.59, no.1, pp.5&ndash;27,2017, doi:10.1177/0018720816681350.</li>
 <li>B. Nosek et al., "The Preregistration Revolution," <i>PNAS</i>,115(11),2018.</li>
-<li>OWASP, "OWASP Top Ten Web Application Security Risks,"2021.</li>
-<li>Hack The Box Ltd., "Hack The Box Platform &mdash; Machine Writeups," hackthebox.com,2026.</li>
 </ol>
-<p class="footnote"><i>Reference verification in progress; final list to be
-confirmed against a systematic search before arXiv submission.</i></p>
+<p class="footnote"><i>arXiv items verified against API records (title, authors,
+identifier) on2026-11-07; [26] verified via Crossref DOI; [15] via DSpace@MIT
+handle. [13], [27] are canonical web/periodical references.</i></p>
 
 <h2>Appendix A&nbsp;&nbsp;Artifacts</h2>
 <p class="footnote mono">github.com/shri7-lab/Htb-Notes &mdash; research/pilot-protocol.md

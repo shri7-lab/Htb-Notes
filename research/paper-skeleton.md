@@ -117,8 +117,8 @@
 | # | Add | Kya dega | Kab | Status |
 |---|-----|----------|-----|--------|
 | 1 | **More runs: n≥6 + driver arm (pilot #3)** | condition comparison claim (§5.6) + statistical weight | Nov–Dec | ⬜ blocked on runs |
-| 2 | **Systematic related-work check** | §2 final + novelty positioning (COLM: Ambition) | quota unblock | 🚫 blocked on402 |
-| 3 | **References verified + expanded (10→25+)** — sources: **arXiv best/open-access LLM-pentest papers**, **MIT Open Scholarship (DSpace@MIT, dspace.mit.edu)**, USENIX/NDSS/S&P OA archives, plus webfetch of arXiv abs pages (works even while websearch is402) | scholarly credibility (Clarity/Honesty) | alongside #2 | ⬜ |
+| 2 | **Systematic related-work check** | §2 final + novelty positioning (COLM: Ambition) | ~~quota unblock~~ | ✅ done2026-11-07: arXiv API4 queries (72+53+7+3 hits) + MIT Open Scholarship + Crossref; database-level coverage remains §7 future work |
+| 3 | **References verified + expanded (10→25+)** — sources: **arXiv best/open-access LLM-pentest papers**, **MIT Open Scholarship (DSpace@MIT)**, USENIX/NDSS/S&P OA archives | scholarly credibility (Clarity/Honesty) | alongside #2 | ✅ done: **27 refs**, arXiv API record-verified, Endsley via Crossref DOI, MIT thesis via DSpace handle |
 | 4 | **Figures ×4**: kill-chain diagram, time-stratification stacked bars, taxonomy tree, protocol/amendment timeline | visual professionalism + Understanding Depth | 1 day | ⬜ ready to make |
 | 5 | **Second annotator → inter-rater reliability (Cohen's κ)** | agreement metric becomes validated, not self-graded (Empiricism) | with next run | ⬜ needs one human pass |
 | 6 | **Affiliation** | title page completeness | from author | ⬜ blocked on user |
