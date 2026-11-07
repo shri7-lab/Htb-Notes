@@ -116,7 +116,7 @@
 
 | # | Add | Kya dega | Kab | Status |
 |---|-----|----------|-----|--------|
-| 1 | **More runs: n≥6 + driver arm (pilot #3)** | condition comparison claim (§5.6) + statistical weight | Nov–Dec | ⬜ blocked on runs |
+| 1 | **More runs: n≥6 + driver arm (pilot #3)** | condition comparison claim (§5.6) + statistical weight | Nov–Dec | 🟡 **gate READY**: `pilot-protocol-v3.md` pre-registered (R7–R10 + driver design + hypotheses); awaiting box selection + runs |
 | 2 | **Systematic related-work check** | §2 final + novelty positioning (COLM: Ambition) | ~~quota unblock~~ | ✅ done2026-11-07: arXiv API4 queries (72+53+7+3 hits) + MIT Open Scholarship + Crossref; database-level coverage remains §7 future work |
 | 3 | **References verified + expanded (10→25+)** — sources: **arXiv best/open-access LLM-pentest papers**, **MIT Open Scholarship (DSpace@MIT)**, USENIX/NDSS/S&P OA archives | scholarly credibility (Clarity/Honesty) | alongside #2 | ✅ done: **27 refs**, arXiv API record-verified, Endsley via Crossref DOI, MIT thesis via DSpace handle |
 | 4 | **Figures ×4**: kill-chain diagram, time-stratification stacked bars, taxonomy tree, protocol/amendment timeline | visual professionalism + Understanding Depth | 1 day | ⬜ ready to make |

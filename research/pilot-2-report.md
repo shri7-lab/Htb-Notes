@@ -118,9 +118,9 @@ kali's docker NAT was dead and the Mac's VPN IP `10.10.15.94` was the only viabl
 
 ##7. Next actions
 
-- [ ] **Pre-register `pilot-protocol-v3.md`** (§5 candidates a–d) before any next run
-- [ ] Push this report + backfilled session log
-- [ ] Despawn MakeSense (spawn expires19:32Z; data collected)
-- [ ] Retry novelty/related-work check (websearch HTTP402 since pilot #1)
-- [ ] Machine-table note: MakeSense user-own submitted on user's account (delegate run — no driver-mode writeup, consistent with pilot #1/Management treatment)
-- [ ] Pilot #3 design: driver-mode HUMAN arm on a comparable retired Medium box for cross-arm contrast (paper's other arm)
+- [x] **Pre-register `pilot-protocol-v3.md`** (§5 candidates a–d) before any next run — done 2026-11-07, committed pre-run
+- [x] Push this report + backfilled session log (commit `446c155`)
+- [x] Despawn MakeSense (terminated post-run; data collected)
+- [x] Retry novelty/related-work check — done via arXiv API + MIT Open Scholarship + Crossref sweep (paper commit `fe914de`); websearch still HTTP402 (database-level coverage remains §7 future work)
+- [x] Machine-table note: MakeSense user-own submitted on user's account (delegate run — no driver-mode writeup, consistent with pilot #1/Management treatment) — README note `e6ed22e`
+- [x] Pilot #3 design: driver-mode HUMAN arm on a comparable retired Medium box for cross-arm contrast — embedded in `pilot-protocol-v3.md` §1/§2/§5/§10 (roles, screening, hint protocol, hypotheses)
